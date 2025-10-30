@@ -11,4 +11,3 @@ class Handlers:
     def test(self):
         self.controller.screen.print("Testing")
         self.brain.screen.print("Testing")
-        []
