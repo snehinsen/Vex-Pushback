@@ -1,6 +1,9 @@
 from vex import *
+from handlers import Handlers
 
 brain = Brain()
+controller = Controller()
+handlers = Handlers(brain, controller)
 
 def autonomous():
     brain.screen.clear_screen()
@@ -11,11 +14,12 @@ def user_control():
     brain.screen.clear_screen()
     brain.screen.print("driver control")
     # place driver control in this while loop
+
     while True:
-        wait(20, MSEC)
+        Controller.buttonA.pressed(handlers.test)
 
 # create competition instance
 comp = Competition(user_control, autonomous)
 
 # actions to do when the program starts
-brain.screen.clear_screen()
+
