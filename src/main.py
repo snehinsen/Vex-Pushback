@@ -1,5 +1,6 @@
 from vex import *
 from handlers import Handlers
+from defenitions import *
 
 brain = Brain()
 controller = Controller()
@@ -15,11 +16,12 @@ def user_control():
     brain.screen.print("driver control")
     # place driver control in this while loop
 
+    belt.set_velocity(50, PERCENT)
+    belt.set_stopping(HOLD)
     while True:
         Controller.buttonA.pressed(handlers.test)
 
 # create competition instance
 comp = Competition(user_control, autonomous)
 
-# actions to do when the program starts
 
