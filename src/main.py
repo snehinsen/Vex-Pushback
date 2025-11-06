@@ -51,5 +51,10 @@ def user_control():
     while True:
         wait(20, MSEC)
 
-# Competition setup
-comp = Competition(user_control, autonomous)
+def main():
+    # Competition setup
+    comp = Competition(user_control, autonomous)
+    print(comp)
+
+if __name__ == "__main__":
+    main()
