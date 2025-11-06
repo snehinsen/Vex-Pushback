@@ -1,6 +1,6 @@
 from vex import *
 from handlers import Handlers
-from defenitions import *
+from definitions import *
 
 brain = Brain()
 controller = Controller(PRIMARY)
