@@ -1,0 +1,14 @@
+from vex import *
+
+brain = Brain()
+controller = Controller(PRIMARY)
+
+left_drive = Motor(Ports.PORT18, GearSetting.RATIO_18_1, False)
+right_drive = Motor(Ports.PORT19, GearSetting.RATIO_18_1, False)
+driveTrain=DriveTrain(left_drive, right_drive, 319.19, 295, 40, MM, 1)
+
+belt = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+intake_flywheel = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
+
+# Sensor array
+bumper = Bumper(brain.three_wire_port.h)
