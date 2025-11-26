@@ -8,13 +8,25 @@
 /*----------------------------------------------------------------------------*/
 
 #include "vex.h"
+#include "definitions.h"
+#include "handlers.h"
 
 using namespace vex;
 
 // A global instance of competition
 competition Competition;
 
-// define your global instances of motors and other devices here
+// Python → C++ translated state
+bool remote_control_code_enabled = true;
+bool drivetrain_stopped = false;
+
+// Drive state (ramped tank control)
+double left_current_speed  = 0;
+double right_current_speed = 0;
+const double drive_ramp_factor = 0.2;
+
+// Handler instance
+Handlers handlers;
 
 /*---------------------------------------------------------------------------*/
 /*                          Pre-Autonomous Functions                         */
@@ -30,6 +42,78 @@ void pre_auton(void) {
 
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
+}
+
+/*---------------------------------------------*/
+/* Python: ramp_speed()                        */
+/*---------------------------------------------*/
+double ramp_speed(double current, double target) {
+  return current + (target - current) * drive_ramp_factor;
+}
+
+/*---------------------------------------------*/
+/* Python rc_auto_loop_function_controller()    */
+/*---------------------------------------------*/
+int rc_drive_task() {
+  while (true) {
+
+    if (!remote_control_code_enabled) {
+      wait(20, msec);
+      continue;
+    }
+
+    // Arcade drive inputs
+    double forward = Controller1.Axis3.position();
+    double turn    = Controller1.Axis2.position();   // ← turn stick
+
+    double left_target  = forward + turn;
+    double right_target = forward - turn;
+
+    left_current_speed  = ramp_speed(left_current_speed, left_target);
+    right_current_speed = ramp_speed(right_current_speed, right_target);
+
+    // Deadband
+    if (fabs(forward) < 5 && fabs(turn) < 5) {
+      if (!drivetrain_stopped) {
+        left_drive.stop();
+        right_drive.stop();
+        drivetrain_stopped = true;
+      }
+    } else {
+      drivetrain_stopped = false;
+
+      left_drive.setVelocity(left_current_speed, percentUnits::pct);
+      right_drive.setVelocity(right_current_speed, percentUnits::pct);
+
+      left_drive.spin(directionType::fwd);
+      right_drive.spin(directionType::fwd);
+    }
+
+    wait(20, msec);
+  }
+
+  return 0;
+}
+
+/*---------------------------------------------*/
+/* Python mechanism_idle_loop()                */
+/*---------------------------------------------*/
+int mechanism_idle_task() {
+  while (true) {
+    // Intake stop when L1/L2 are NOT pressed
+    if (!(Controller1.ButtonL1.pressing() || Controller1.ButtonL2.pressing())) {
+      handlers.intake_stop();
+    }
+
+    // Belt stop when R1/R2 are NOT pressed
+    if (!(Controller1.ButtonR1.pressing() || Controller1.ButtonR2.pressing())) {
+      handlers.belt_stop();
+    }
+
+    wait(20, msec);
+  }
+
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -59,6 +143,31 @@ void autonomous(void) {
 /*---------------------------------------------------------------------------*/
 
 void usercontrol(void) {
+  // Python: brain.screen.print("Driver control active")
+  Brain.Screen.clearScreen();
+  Brain.Screen.print("Driver control active");
+
+  // ============================
+  // Register button events
+  // ============================
+
+  // Intake (L1/L2)
+  Controller1.ButtonL1.pressed([](){ handlers.intake_forward(); });
+  Controller1.ButtonL2.pressed([](){ handlers.intake_reverse(); });
+
+  // Belt (R1/R2)
+  Controller1.ButtonR1.pressed([](){ handlers.belt_forward(); });
+  Controller1.ButtonR2.pressed([](){ handlers.belt_reverse(); });
+
+  // Test button (A)
+  Controller1.ButtonA.pressed([](){ handlers.test(); });
+
+  // ============================
+  // Background threads
+  // ============================
+  thread driveThread(rc_drive_task);
+  thread mechThread(mechanism_idle_task);
+
   // User control code here, inside the loop
   while (1) {
     // This is the main execution loop for the user control program.
