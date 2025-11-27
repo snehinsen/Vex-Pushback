@@ -23,7 +23,7 @@ bool drivetrain_stopped = false;
 // Drive state (ramped tank control)
 double left_current_speed  = 0;
 double right_current_speed = 0;
-const double drive_ramp_factor = 0.2;
+constexpr double drive_ramp_factor = 0.2;
 
 // Handler instance
 Handlers handlers;
