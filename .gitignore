@@ -1,2 +1,3 @@
-/extensions.json/settings.json
-.idea/*
+.idea/
+build/
+.vscode/
