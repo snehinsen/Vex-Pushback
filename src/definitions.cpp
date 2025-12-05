@@ -24,4 +24,4 @@ vex::motor belt(vex::PORT3, vex::gearSetting::ratio18_1, false);
 vex::motor intake_flywheel(vex::PORT2, vex::gearSetting::ratio18_1, false);
 
 // Sensor
-vex::bumper bumper(Brain.ThreeWirePort.H);
+vex::bumper Bumper(Brain.ThreeWirePort.H);

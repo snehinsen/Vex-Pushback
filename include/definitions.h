@@ -18,4 +18,4 @@ extern vex::motor belt;
 extern vex::motor intake_flywheel;
 
 // Sensor
-extern vex::bumper bumper;
+extern vex::bumper Bumper;

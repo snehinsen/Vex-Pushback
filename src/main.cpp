@@ -70,7 +70,9 @@ int rc_drive_task() {
 
     // Arcade drive inputs
     double forward = Controller1.Axis3.position();
+    forward = 0;
     double turn    = Controller1.Axis1.position();   // ← turn stick
+    turn   = 0;
 
     double left_target  = forward + turn;
     double right_target = forward - turn;
