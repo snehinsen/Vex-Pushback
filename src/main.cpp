@@ -57,10 +57,16 @@ double ramp_speed(double current, double target) {
 int rc_drive_task() {
   while (true) {
 
+    double drive_volocity = 25.0;
+
     if (!remote_control_code_enabled) {
       wait(20, msec);
       continue;
     }
+
+    // Set drive velocity multiplier based on trigger buttons
+    left_drive.setVelocity(drive_volocity, percentUnits::pct);
+    right_drive.setVelocity(drive_volocity, percentUnits::pct);
 
     // Arcade drive inputs
     double forward = Controller1.Axis3.position();
@@ -68,7 +74,7 @@ int rc_drive_task() {
 
     double left_target  = forward + turn;
     double right_target = forward - turn;
-
+    
     left_current_speed  = ramp_speed(left_current_speed, left_target);
     right_current_speed = ramp_speed(right_current_speed, right_target);
 
@@ -143,7 +149,6 @@ void autonomous(void) {
 /*---------------------------------------------------------------------------*/
 
 void usercontrol(void) {
-  // Python: brain.screen.print("Driver control active")
   Brain.Screen.clearScreen();
   Brain.Screen.print("Driver control active");
 
