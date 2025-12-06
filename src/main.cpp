@@ -73,6 +73,8 @@ int rc_drive_task() {
     double turn    = Controller1.Axis1.position();   // ← turn stick
     // forward = 0;
     // turn   = 0;
+    Control.Screen.print(forward + ", " + turn);
+
 
     double left_target  = forward + turn;
     double right_target = forward - turn;
