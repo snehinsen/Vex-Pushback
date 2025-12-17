@@ -2,13 +2,16 @@
 
 // Constructor
 Handlers::Handlers() {
-    // Nothing to do — devices already exist globally in definitions.cpp
+  // Leave empty unless you are initializing stuff
 }
 
-// Test function
+// --------------------------
+// Generic
+// --------------------------
+
 void Handlers::test() {
-    Controller1.Screen.print("Testing");
-    Brain.Screen.print("Testing");
+  Controller1.Screen.print("Testing");
+  Brain.Screen.print("Testing");
 }
 
 // --------------------------
@@ -16,17 +19,17 @@ void Handlers::test() {
 // --------------------------
 
 void Handlers::intake_forward() {
-    intake_flywheel.setVelocity(100, vex::percentUnits::pct);
-    intake_flywheel.spin(vex::directionType::fwd);
+  intake_flywheel.setVelocity(100, vex::percentUnits::pct);
+  intake_flywheel.spin(vex::directionType::fwd);
 }
 
 void Handlers::intake_reverse() {
-    intake_flywheel.setVelocity(100, vex::percentUnits::pct);
-    intake_flywheel.spin(vex::directionType::rev);
+  intake_flywheel.setVelocity(100, vex::percentUnits::pct);
+  intake_flywheel.spin(vex::directionType::rev);
 }
 
 void Handlers::intake_stop() {
-    intake_flywheel.stop();
+  intake_flywheel.stop();
 }
 
 // --------------------------
@@ -34,15 +37,32 @@ void Handlers::intake_stop() {
 // --------------------------
 
 void Handlers::belt_forward() {
-    belt.setVelocity(80, vex::percentUnits::pct);
-    belt.spin(vex::directionType::fwd);
+  belt.setVelocity(80, vex::percentUnits::pct);
+  belt.spin(vex::directionType::fwd);
 }
 
 void Handlers::belt_reverse() {
-    belt.setVelocity(80, vex::percentUnits::pct);
-    belt.spin(vex::directionType::rev);
+  belt.setVelocity(80, vex::percentUnits::pct);
+  belt.spin(vex::directionType::rev);
 }
 
 void Handlers::belt_stop() {
-    belt.stop();
+  belt.stop();
+}
+
+// --------------------------
+// Generic motor handler
+// --------------------------
+
+void Handlers::spinMotor(vex::motor& m, double speedPct) {
+  if (fabs(speedPct) < 1) {
+    m.stop(vex::brakeType::coast);
+    return;
+  }
+
+  if (speedPct > 0) {
+    m.spin(vex::directionType::fwd, speedPct, vex::percentUnits::pct);
+  } else {
+    m.spin(vex::directionType::rev, -speedPct, vex::percentUnits::pct);
+  }
 }

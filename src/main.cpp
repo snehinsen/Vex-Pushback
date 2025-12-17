@@ -10,8 +10,8 @@
 #include "vex.h"
 #include "definitions.h"
 #include "handlers.h"
-
 using namespace vex;
+
 
 // A global instance of competition
 competition Competition;
@@ -57,49 +57,49 @@ double ramp_speed(double current, double target) {
 int rc_drive_task() {
   while (true) {
 
-    double drive_volocity = 25.0;
-
     if (!remote_control_code_enabled) {
       wait(20, msec);
       continue;
     }
 
-    // Set drive velocity multiplier based on trigger buttons
-    left_drive.setVelocity(drive_volocity, percentUnits::pct);
-    right_drive.setVelocity(drive_volocity, percentUnits::pct);
-
-    // Arcade drive inputs
+    // Read controller
     double forward = Controller1.Axis3.position();
     double turn    = Controller1.Axis1.position();
-    // forward = 0;
-    // turn   = 0;
+
+    // Debug print
     Brain.Screen.print(forward);
     Brain.Screen.print(",");
     Brain.Screen.print(turn);
     Brain.Screen.newLine();
 
-
+    // Arcade mix
     double left_target  = forward + turn;
     double right_target = forward - turn;
-    
+
+    // Normalize to ±100
+    double maxMag = std::max(fabs(left_target), fabs(right_target));
+    if (maxMag > 100) {
+      left_target  *= 100.0 / maxMag;
+      right_target *= 100.0 / maxMag;
+    }
+
+    // Ramping
     left_current_speed  = ramp_speed(left_current_speed, left_target);
     right_current_speed = ramp_speed(right_current_speed, right_target);
 
     // Deadband
     if (fabs(forward) < 5 && fabs(turn) < 5) {
       if (!drivetrain_stopped) {
-        left_drive.stop();
-        right_drive.stop();
+        left_drive.stop(brakeType::coast);
+        right_drive.stop(brakeType::coast);
         drivetrain_stopped = true;
       }
     } else {
       drivetrain_stopped = false;
 
-      left_drive.setVelocity(left_current_speed, percentUnits::pct);
-      right_drive.setVelocity(right_current_speed, percentUnits::pct);
-
-      left_drive.spin(directionType::fwd);
-      right_drive.spin(directionType::fwd);
+      // Handlers do the spinning
+      handlers.(left_drive, left_current_speed);
+      handlers.spinMotor(right_drive, right_current_speed);
     }
 
     wait(20, msec);
@@ -107,6 +107,7 @@ int rc_drive_task() {
 
   return 0;
 }
+
 
 /*---------------------------------------------*/
 /* Python mechanism_idle_loop()                */
@@ -140,9 +141,12 @@ int mechanism_idle_task() {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
-  // ..........................................................................
-  // Insert autonomous user code here.
-  // ..........................................................................
+  // disable driver controls
+  remote_control_code_enabled = false;
+  // make sure motors are stopped first
+  left_drive.stop();
+  right_drive.stop();
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -159,6 +163,18 @@ void usercontrol(void) {
   Brain.Screen.clearScreen();
   Brain.Screen.print("Driver control active");
 
+  Controller1.ButtonX.pressed([](){
+    // Enable driver control code
+    remote_control_code_enabled = false;
+    
+    autonomous();
+  });
+  Controller1.ButtonY.pressed([](){
+    // Disable driver control code
+    remote_control_code_enabled = true;
+  });
+  
+
   // ============================
   // Register button events
   // ============================
@@ -171,7 +187,7 @@ void usercontrol(void) {
   Controller1.ButtonR1.pressed([](){ handlers.belt_forward(); });
   Controller1.ButtonR2.pressed([](){ handlers.belt_reverse(); });
 
-  // Test button (A)
+  // Test button (A)-
   Controller1.ButtonA.pressed([](){ handlers.test(); });
 
   // ============================
@@ -206,6 +222,8 @@ int main() {
 
   // Run the pre-autonomous function.
   pre_auton();
+
+  
 
   // Prevent main from exiting with an infinite loop.
   while (true) {

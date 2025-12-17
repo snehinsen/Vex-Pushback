@@ -18,4 +18,5 @@ public:
     void belt_forward();
     void belt_reverse();
     void belt_stop();
+    void spinMotor(vex::motor & m, double speedPct);
 };
